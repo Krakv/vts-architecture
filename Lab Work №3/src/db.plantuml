@@ -1,0 +1,53 @@
+@startuml DATABASE
+' База данных задач в виде диаграммы классов UML
+
+' Класс Пользователь
+class User {
+    +user_id : INT <<PK>>
+    +name : VARCHAR
+    +email : VARCHAR
+}
+
+' Класс Задача
+class Task {
+    +task_id : INT <<PK>>
+    +parent_task_id : INT <<FK>>
+    +project_id : INT <<FK>>
+    +title : VARCHAR
+    +description : TEXT
+    +status : VARCHAR
+    +priority : VARCHAR
+    +due_date : DATE
+}
+
+' Класс для множественной связи задач и пользователей
+class TaskUser {
+    +task_id : INT <<FK>>
+    +user_id : INT <<FK>>
+}
+
+' Класс Проект
+class Project {
+    +project_id : INT <<PK>>
+    +name : VARCHAR
+}
+
+' Класс Календарь
+class CalendarEvent {
+    +event_id : INT <<PK>>
+    +task_id : INT <<FK>>
+    +start_time : DATETIME
+    +end_time : DATETIME
+    +location : VARCHAR
+}
+
+class Rule {
+    +rule_id : INT <<PK>>
+
+}
+
+' Ассоциации
+User "1" -- "0..*" Task : создает >
+Task "1" -- "0..1" CalendarEvent : отображается в >
+
+@enduml

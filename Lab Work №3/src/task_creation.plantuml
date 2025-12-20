@@ -1,0 +1,120 @@
+@startuml Создание задачи голосом
+
+title Use Case: Создание задачи через голосовую команду
+actor "Пользователь" as User
+participant "Web UI" as UI
+participant "API Gateway" as Gateway
+participant "Auth Service" as Auth
+participant "Task Management\nModule" as TaskMgr
+participant "Speech Processing\nService" as NLP
+participant "Rule Engine" as RuleEngine
+participant "Repository" as DB
+participant "Calendar Integration\nModule" as CalendarInt
+
+autonumber
+
+User ->> UI: Нажимает кнопку "Голосовой ввод"
+activate UI
+
+UI -> UI: Записывает аудио
+User ->> UI: Завершает запись
+UI -> Gateway: Голосовая команда
+activate Gateway
+
+Gateway -> Auth: Валидирует токен
+activate Auth
+Auth --> Gateway: OK
+deactivate Auth
+
+Gateway ->> TaskMgr: Запрос на создание задачи из голоса
+activate TaskMgr
+
+Gateway --> UI: 202 Accepted (taskDraftId)
+deactivate UI
+deactivate Gateway
+
+TaskMgr -> NLP: Обработать голосовое сообщение
+activate NLP
+NLP -> NLP: Преобразует речь в текст
+NLP -> NLP: Анализирует текст
+NLP --> TaskMgr: Структурированные данные задачи
+deactivate NLP
+
+TaskMgr -> DB: Получить шаблоны пользователя
+activate DB
+DB --> TaskMgr: Шаблоны
+deactivate DB
+
+TaskMgr -> RuleEngine: Применить шаблоны к задаче
+activate RuleEngine
+RuleEngine --> TaskMgr: Задача с примененными шаблонами
+deactivate RuleEngine
+
+TaskMgr -> DB: Сохранить черновик задачи
+activate DB
+DB --> TaskMgr: Идентификатор черновика
+deactivate DB
+
+deactivate TaskMgr
+
+activate UI
+
+loop Проверка, пока черновик задачи не создан
+    UI -> Gateway: Получение статуса\nготовности черновика
+    activate Gateway
+
+    Gateway -> TaskMgr: Получить статус черновика
+    activate TaskMgr
+
+    TaskMgr -> DB: Получить черновик
+    activate DB
+    DB --> TaskMgr: Статус "Готово"
+    deactivate DB
+    TaskMgr --> Gateway: Статус
+    deactivate TaskMgr
+
+    Gateway --> UI: 200 OK (Готово)
+    deactivate Gateway
+end
+
+
+
+UI ->> User: Показывает задачу для подтверждения
+User ->> UI: Подтверждает создание
+UI -> Gateway: Подтверждение создания 
+activate Gateway
+
+Gateway -> Auth: Валидирует токен
+activate Auth
+Auth --> Gateway: OK
+deactivate Auth
+
+Gateway -> TaskMgr: Подтвердить создание задачи
+activate TaskMgr
+
+TaskMgr -> DB: Финализировать задачу
+activate DB
+DB --> TaskMgr: Задача сохранена
+deactivate DB
+
+TaskMgr -> RuleEngine: Уведомить о событии "task.created"
+activate RuleEngine
+RuleEngine --> TaskMgr: Принято к обработке
+deactivate RuleEngine
+
+TaskMgr -> CalendarInt: Создать событие в календаре
+activate CalendarInt
+CalendarInt --> TaskMgr: Событие создано
+deactivate CalendarInt
+
+TaskMgr --> Gateway: Задача создана
+deactivate TaskMgr
+
+Gateway --> UI: 201 Создано
+deactivate Gateway
+
+UI ->> User: "Задача создана"
+deactivate UI
+
+
+@enduml
