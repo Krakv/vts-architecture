@@ -1,0 +1,92 @@
+@startuml DATABASE
+' База данных задач с подписями на русском
+
+' Класс Пользователь
+class User {
+    +user_id : INT <<PK>>
+    +name : VARCHAR
+    +email : VARCHAR
+    +created_at : DATETIME
+}
+
+' Класс Задача
+class Task {
+    +task_id : INT <<PK>>
+    +owner_id : INT <<FK>>
+    +project_name : VARCHAR
+    +title : VARCHAR
+    +description : TEXT
+    +status : VARCHAR
+    +priority : VARCHAR
+    +due_date : DATE
+    +created_at : DATETIME
+    +updated_at : DATETIME
+    +deleted_at : DATETIME
+}
+
+' Класс Иерархия задач
+class TaskHierarchy {
+    +parent_task_id : INT <<FK>>
+    +child_task_id : INT <<FK>>
+}
+
+' Класс Календарь
+class CalendarEvent {
+    +event_id : INT <<PK>>
+    +task_id : INT <<FK>>
+    +start_time : DATETIME
+    +end_time : DATETIME
+    +location : VARCHAR
+    +external_event_id : VARCHAR
+    +external_calendar_account_id : INT <<FK>>
+}
+
+' Класс Правило
+class Rule {
+    +rule_id : INT <<PK>>
+    +user_id : INT <<FK>>
+    +event : VARCHAR        
+    +condition : TEXT       
+    +action : TEXT          
+    +is_active : BOOLEAN
+}
+
+' Класс Уведомление
+class Notification {
+    +notification_id : INT <<PK>>
+    +task_id : INT <<FK>>
+    +service_id : INT <<FK>>
+    +text : TEXT
+    +scheduled_at : DATETIME
+    +sent_at : DATETIME
+    +status : VARCHAR
+}
+
+' Класс Сервис для уведомлений
+class Service {
+    +service_id : INT <<PK>>
+    +name : VARCHAR
+}
+
+' Класс для хранения ключей доступа к календарю пользователя
+class ExternalCalendarAccount {
+    +id : INT <<PK>>
+    +user_id : INT <<FK>>
+    +provider : VARCHAR
+    +access_token : TEXT
+    +refresh_token : TEXT
+    +expires_at : DATETIME
+}
+
+' Ассоциации с подписями на русском
+User "1" --> "0..*" Task : владеет
+Task "1" <-- "0..*" CalendarEvent : события задачи
+Task "1" <-- "0..*" Notification : уведомления по задаче
+Task "1" <-- "0..*" TaskHierarchy : родитель
+Task "1" <-- "0..1" TaskHierarchy : ребёнок
+User "1" --> "0..*" Rule : правила пользователя
+Service "1" --> "0..*" Notification : отправляет уведомления
+User "1" --> "0..*" ExternalCalendarAccount : аккаунты календаря
+CalendarEvent "0..*" -- "1" ExternalCalendarAccount : связанный аккаунт
+
+@enduml
