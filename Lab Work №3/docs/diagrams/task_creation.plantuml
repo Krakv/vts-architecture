@@ -8,12 +8,13 @@ participant "Auth Service" as Auth
 participant "Task Management\nModule" as TaskMgr
 participant "Speech Processing\nService" as NLP
 participant "Rule Engine" as RuleEngine
-participant "Repository" as DB
+participant "Repository" as Repository
+participant "Database" as DB
 participant "Calendar Integration\nModule" as CalendarInt
 
 autonumber
 
-User ->> UI: Нажимает кнопку "Голосовой ввод"
+User ->> UI: Нажимает кнопку\n"Голосовой ввод"
 activate UI
 
 UI -> UI: Записывает аудио
@@ -26,34 +27,42 @@ activate Auth
 Auth --> Gateway: OK
 deactivate Auth
 
-Gateway ->> TaskMgr: Запрос на создание задачи из голоса
+Gateway ->> TaskMgr: Запрос на создание\nзадачи из голоса
 activate TaskMgr
 
 Gateway --> UI: 202 Accepted (taskDraftId)
 deactivate UI
 deactivate Gateway
 
-TaskMgr -> NLP: Обработать голосовое сообщение
+TaskMgr -> NLP: Обработать\nголосовое сообщение
 activate NLP
-NLP -> NLP: Преобразует речь в текст
-NLP -> NLP: Анализирует текст
-NLP --> TaskMgr: Структурированные данные задачи
+NLP -> NLP: Преобразует речь\nв текст
+NLP -> NLP: Анализирует\nтекст
+NLP --> TaskMgr: Структурированные\nданные задачи
 deactivate NLP
 
-TaskMgr -> DB: Получить шаблоны пользователя
+TaskMgr -> Repository: Получить шаблоны\nпользователя
+activate Repository
+Repository -> DB: Получить шаблоны\nпользователя
 activate DB
-DB --> TaskMgr: Шаблоны
+DB --> Repository: Шаблоны
 deactivate DB
+Repository --> TaskMgr: Шаблоны
+deactivate Repository
 
 TaskMgr -> RuleEngine: Применить шаблоны к задаче
 activate RuleEngine
 RuleEngine --> TaskMgr: Задача с примененными шаблонами
 deactivate RuleEngine
 
-TaskMgr -> DB: Сохранить черновик задачи
+TaskMgr -> Repository: Сохранить черновик задачи
+activate Repository
+Repository -> DB: Сохранить\nчерновик задачи
 activate DB
-DB --> TaskMgr: Идентификатор черновика
+DB --> Repository: Идентификатор\nчерновика
 deactivate DB
+Repository --> TaskMgr: Идентификатор черновика
+deactivate Repository
 
 deactivate TaskMgr
 
@@ -63,13 +72,17 @@ loop Проверка, пока черновик задачи не создан
     UI -> Gateway: Получение статуса\nготовности черновика
     activate Gateway
 
-    Gateway -> TaskMgr: Получить статус черновика
+    Gateway -> TaskMgr: Получить статус\nчерновика
     activate TaskMgr
 
-    TaskMgr -> DB: Получить черновик
+    TaskMgr -> Repository: Получить черновик
+    activate Repository
+    Repository -> DB: Получить черновик
     activate DB
-    DB --> TaskMgr: Статус "Готово"
+    DB --> Repository: Статус "Готово"
     deactivate DB
+    Repository --> TaskMgr: Статус "Готово"
+    deactivate Repository
     TaskMgr --> Gateway: Статус
     deactivate TaskMgr
 
@@ -79,7 +92,7 @@ end
 
 
 
-UI ->> User: Показывает задачу для подтверждения
+UI ->> User: Показывает задачу\nдля подтверждения
 User ->> UI: Подтверждает создание
 UI -> Gateway: Подтверждение создания 
 activate Gateway
@@ -89,13 +102,17 @@ activate Auth
 Auth --> Gateway: OK
 deactivate Auth
 
-Gateway -> TaskMgr: Подтвердить создание задачи
+Gateway -> TaskMgr: Подтвердить создание\nзадачи
 activate TaskMgr
 
-TaskMgr -> DB: Финализировать задачу
+TaskMgr -> Repository: Финализировать задачу
+activate Repository
+Repository -> DB: Поставить отметку\nо созданной задаче
 activate DB
-DB --> TaskMgr: Задача сохранена
+DB --> Repository: Задача\nсохранена
 deactivate DB
+Repository --> TaskMgr: Задача сохранена
+deactivate Repository
 
 TaskMgr -> RuleEngine: Уведомить о событии "task.created"
 activate RuleEngine
