@@ -78,6 +78,25 @@ class ExternalCalendarAccount {
     +expires_at : DATETIME
 }
 
+class CommandRequest {
+    +command_request_id : INT <<PK>>
+    +owner_id : INT <<FK>>
+    +intent : VARCHAR
+    +payload : JSON
+    +status : VARCHAR
+    +confirmation_required : BOOLEAN
+    +created_at : DATETIME
+    +updated_at : DATETIME
+    +canceled_at : DATETIME
+    +accepted_at : DATETIME
+}
+
+class CommandRequestTask {
+    +command_request_id : INT <<FK>>
+    +task_id : INT <<FK>>
+}
+
+
 ' Ассоциации с подписями на русском
 User "1" --> "0..*" Task : владеет
 Task "1" <-- "0..*" CalendarEvent : события задачи
@@ -88,5 +107,9 @@ User "1" --> "0..*" Rule : правила пользователя
 Service "1" --> "0..*" Notification : отправляет уведомления
 User "1" --> "0..*" ExternalCalendarAccount : аккаунты календаря
 CalendarEvent "0..*" -- "1" ExternalCalendarAccount : связанный аккаунт
+User "1" --> "0..*" CommandRequest : владеет
+CommandRequest "1" --> "0..*" CommandRequestTask
+CommandRequestTask "0..*" --> "1" Task
+
 
 @enduml
