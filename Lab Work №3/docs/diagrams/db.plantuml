@@ -1,41 +1,36 @@
 @startuml DATABASE
-' База данных задач с подписями на русском
 
 ' Класс Пользователь
 class User {
-    +user_id : INT <<PK>>
+    +id : UUID <<PK>>
     +name : VARCHAR
     +email : VARCHAR
-    +created_at : DATETIME
+    +created_at : TIMESTAMP
 }
 
 ' Класс Задача
 class Task {
-    +task_id : INT <<PK>>
-    +owner_id : INT <<FK>>
+    +task_id : UUID <<PK>>
+    +parent_task_id : UUID <<FK>>
+    +owner_id : UUID <<FK>>
     +project_name : VARCHAR
     +title : VARCHAR
     +description : TEXT
     +status : VARCHAR
     +priority : VARCHAR
-    +due_date : DATE
-    +created_at : DATETIME
-    +updated_at : DATETIME
-    +deleted_at : DATETIME
-}
-
-' Класс Иерархия задач
-class TaskHierarchy {
-    +parent_task_id : INT <<FK>>
-    +child_task_id : INT <<FK>>
+    +tags : TEXT
+    +due_date : TIMESTAMP
+    +created_at : TIMESTAMP
+    +updated_at : TIMESTAMP
+    +deleted_at : TIMESTAMP
 }
 
 ' Класс Календарь
 class CalendarEvent {
     +event_id : INT <<PK>>
-    +task_id : INT <<FK>>
-    +start_time : DATETIME
-    +end_time : DATETIME
+    +task_id : UUID <<FK>>
+    +start_time : TIMESTAMP
+    +end_time : TIMESTAMP
     +location : VARCHAR
     +external_event_id : VARCHAR
     +external_calendar_account_id : INT <<FK>>
@@ -44,7 +39,7 @@ class CalendarEvent {
 ' Класс Правило
 class Rule {
     +rule_id : INT <<PK>>
-    +user_id : INT <<FK>>
+    +user_id : UUID <<FK>>
     +event : VARCHAR        
     +condition : TEXT       
     +action : TEXT          
@@ -54,11 +49,11 @@ class Rule {
 ' Класс Уведомление
 class Notification {
     +notification_id : INT <<PK>>
-    +task_id : INT <<FK>>
+    +task_id : UUID <<FK>>
     +service_id : INT <<FK>>
     +text : TEXT
-    +scheduled_at : DATETIME
-    +sent_at : DATETIME
+    +scheduled_at : TIMESTAMP
+    +sent_at : TIMESTAMP
     +status : VARCHAR
 }
 
@@ -71,38 +66,36 @@ class Service {
 ' Класс для хранения ключей доступа к календарю пользователя
 class ExternalCalendarAccount {
     +id : INT <<PK>>
-    +user_id : INT <<FK>>
+    +user_id : UUID <<FK>>
     +provider : VARCHAR
     +access_token : TEXT
     +refresh_token : TEXT
-    +expires_at : DATETIME
+    +expires_at : TIMESTAMP
 }
 
+' Класс CommandRequest
 class CommandRequest {
-    +command_request_id : INT <<PK>>
-    +owner_id : INT <<FK>>
+    +command_request_id : UUID <<PK>>
+    +owner_id : UUID <<FK>>
     +intent : VARCHAR
     +payload : JSON
     +status : VARCHAR
     +confirmation_required : BOOLEAN
-    +created_at : DATETIME
-    +updated_at : DATETIME
-    +canceled_at : DATETIME
-    +accepted_at : DATETIME
+    +created_at : TIMESTAMP
+    +updated_at : TIMESTAMP
+    +canceled_at : TIMESTAMP
+    +accepted_at : TIMESTAMP
 }
 
+' Класс CommandRequestTask
 class CommandRequestTask {
-    +command_request_id : INT <<FK>>
-    +task_id : INT <<FK>>
+    +command_request_id : UUID <<FK>>
+    +task_id : UUID <<FK>>
 }
 
-
-' Ассоциации с подписями на русском
 User "1" --> "0..*" Task : владеет
 Task "1" <-- "0..*" CalendarEvent : события задачи
 Task "1" <-- "0..*" Notification : уведомления по задаче
-Task "1" <-- "0..*" TaskHierarchy : родитель
-Task "1" <-- "0..1" TaskHierarchy : ребёнок
 User "1" --> "0..*" Rule : правила пользователя
 Service "1" --> "0..*" Notification : отправляет уведомления
 User "1" --> "0..*" ExternalCalendarAccount : аккаунты календаря
@@ -110,6 +103,5 @@ CalendarEvent "0..*" -- "1" ExternalCalendarAccount : связанный акк�
 User "1" --> "0..*" CommandRequest : владеет
 CommandRequest "1" --> "0..*" CommandRequestTask
 CommandRequestTask "0..*" --> "1" Task
-
 
 @enduml
